@@ -1,11 +1,15 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/jmoiron/sqlx"
+	_ "modernc.org/sqlite"
 
 	"github.com/ab/baby-words/handlers"
 )
@@ -52,4 +56,13 @@ func dirOfExecutable() string {
 	}
 
 	return filepath.Dir(ex)
+}
+
+func connectDatabase(filename string) sqlx.DB {
+	db, err := sqlx.Connect("sqlite", filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return db
 }
