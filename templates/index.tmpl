@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<h1>Hello from Fly</h1>
+{{ if .region }}
+<h2>I'm running in the {{.region}} region</h2>
+{{end}}
+<h2>You are connecting from: {{ .clientIP }}</h2>
+</body>
+</html>
