@@ -29,3 +29,9 @@ $(DBMATE): $(BINGO_DIR)/dbmate.mod
 	@echo "(re)installing $(GOBIN)/dbmate-v2.13.0"
 	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=dbmate.mod -o=$(GOBIN)/dbmate-v2.13.0 "github.com/amacneil/dbmate/v2"
 
+GOLANGCI_LINT := $(GOBIN)/golangci-lint-v1.57.1
+$(GOLANGCI_LINT): $(BINGO_DIR)/golangci-lint.mod
+	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
+	@echo "(re)installing $(GOBIN)/golangci-lint-v1.57.1"
+	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=golangci-lint.mod -o=$(GOBIN)/golangci-lint-v1.57.1 "github.com/golangci/golangci-lint/cmd/golangci-lint"
+
