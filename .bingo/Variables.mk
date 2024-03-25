@@ -23,3 +23,9 @@ $(BINGO): $(BINGO_DIR)/bingo.mod
 	@echo "(re)installing $(GOBIN)/bingo-v0.9.0"
 	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=bingo.mod -o=$(GOBIN)/bingo-v0.9.0 "github.com/bwplotka/bingo"
 
+DBMATE := $(GOBIN)/dbmate-v2.13.0
+$(DBMATE): $(BINGO_DIR)/dbmate.mod
+	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
+	@echo "(re)installing $(GOBIN)/dbmate-v2.13.0"
+	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=dbmate.mod -o=$(GOBIN)/dbmate-v2.13.0 "github.com/amacneil/dbmate/v2"
+
