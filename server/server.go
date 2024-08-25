@@ -1,14 +1,12 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 
 	"github.com/ab/baby-words/handlers"
@@ -35,15 +33,22 @@ func InitRouter() *gin.Engine {
 		c.JSON(http.StatusOK, gin.H{"healthy": true, "region": os.Getenv("FLY_REGION")})
 	})
 
+	// Set up handler and connect to database
+	dbFile := dirOfExecutable() + "/data/db.sqlite3"
+	h := handlers.NewHandler(dbFile)
+
 	// Root default page
-	r.GET("/", handlers.HandleRoot)
+	r.GET("/", h.HandleRoot)
+
+	// Create baby
+	r.POST("/baby", h.HandleCreateBaby)
 
 	// List words
-	r.GET("/words/:uid/list", handlers.HandleWordList)
+	r.GET("/words/:uid/list", h.HandleWordList)
 
 	// word get / create
-	r.GET("/words/:uid/check/:word", handlers.HandleWordCheck)
-	r.POST("/words/:uid/add/:word", handlers.HandleWordAdd)
+	r.GET("/words/:uid/check/:word", h.HandleWordCheck)
+	r.POST("/words/:uid/add/:word", h.HandleWordAdd)
 
 	return r
 }
@@ -56,13 +61,4 @@ func dirOfExecutable() string {
 	}
 
 	return filepath.Dir(ex)
-}
-
-func connectDatabase(filename string) sqlx.DB {
-	db, err := sqlx.Connect("sqlite", filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db
 }

@@ -10,8 +10,20 @@ import (
 	"github.com/ab/baby-words/db"
 )
 
+type Handler struct {
+	db *db.Connection
+}
+
+func NewHandler(sqliteFilename string) *Handler {
+	conn := db.NewConnection(sqliteFilename)
+
+	return &Handler{
+		db: conn,
+	}
+}
+
 // GET /
-func HandleRoot(c *gin.Context) {
+func (h *Handler) HandleRoot(c *gin.Context) {
 	// c.JSON(http.StatusOK, gin.H{"success": true})
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"region":   os.Getenv("FLY_REGION"),
@@ -19,11 +31,41 @@ func HandleRoot(c *gin.Context) {
 	})
 }
 
+// POST
+/*
+**babies**
+
+- id
+- slug
+- name
+- birth_date
+- created_at
+*/
+func (h *Handler) HandleCreateBaby(c *gin.Context) {
+	name := c.PostForm("name")
+	birthdayString := c.PostForm("birth_date")
+
+	baby, err := h.db.CreateBaby(name, birthdayString)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create baby"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"baby": gin.H{
+			"id":   baby.Id,
+			"slug": baby.Slug,
+		},
+	})
+}
+
 // GET /words/:uid/list
-func HandleWordList(c *gin.Context) {
+func (h *Handler) HandleWordList(c *gin.Context) {
 	uid := c.Param("uid")
 
-	baby, err := helperGetBaby(c, uid)
+	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
 		return
 	}
@@ -35,11 +77,11 @@ func HandleWordList(c *gin.Context) {
 }
 
 // GET /words/:uid/check/:word
-func HandleWordCheck(c *gin.Context) {
+func (h *Handler) HandleWordCheck(c *gin.Context) {
 	uid := c.Param("uid")
 	word := c.Param("word")
 
-	baby, err := helperGetBaby(c, uid)
+	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
 		return
 	}
@@ -52,11 +94,11 @@ func HandleWordCheck(c *gin.Context) {
 }
 
 // POST /words/:uid/add/:word
-func HandleWordAdd(c *gin.Context) {
+func (h *Handler) HandleWordAdd(c *gin.Context) {
 	uid := c.Param("uid")
 	word := c.Param("word")
 
-	baby, err := helperGetBaby(c, uid)
+	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
 		return
 	}
@@ -69,8 +111,8 @@ func HandleWordAdd(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "TODO": "return word info", "wordInfo": wordInfo})
 }
 
-func helperGetBaby(c *gin.Context, uid string) (*db.BabyStruct, error) {
-	baby, err := db.GetBaby(uid)
+func (h *Handler) helperGetBaby(c *gin.Context, slug string) (*db.BabyStruct, error) {
+	baby, err := h.db.GetBaby(slug)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No such baby"})
 		return nil, fmt.Errorf("No such baby")
