@@ -17,7 +17,7 @@
     {{ if .words }}
       <ul>
         {{ range $i, $word := .words }}
-          <li>{{ $word.Word }}</li>
+          <li>{{ $word.Word }} ({{ $word.Learned_Date }})</li>
         {{ end }}
       </ul>
     {{ else }}

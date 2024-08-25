@@ -3,6 +3,7 @@ package db
 import (
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -61,6 +62,50 @@ func (c *Connection) GetBaby(slug string) (*BabyStruct, error) {
 	return &baby, nil
 }
 
+func (c *Connection) ListWords(babyId int64) ([]WordInfo, error) {
+	words := []WordInfo{}
+	err := c.Select(&words, "SELECT * FROM words WHERE baby_id = ?", babyId)
+	if err != nil {
+		return nil, err
+	}
+
+	return words, nil
+}
+
+func (c *Connection) getMaxWordNumber(babyId int64) (int64, error) {
+	maxWord := WordInfo{}
+	err := c.Get(&maxWord, "SELECT * FROM words WHERE baby_id = ? ORDER BY number DESC LIMIT 1", babyId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// no existing words
+			return 0, nil
+		}
+
+		// unexpected error
+		return 0, err
+	}
+
+	log.Printf("Previous max word has number=%v", maxWord.Number)
+	return maxWord.Number, nil
+}
+
+func (c *Connection) AddWord(babyId int64, word string, learnedDate string) (int64, error) {
+
+	maxWordNumber, err := c.getMaxWordNumber(babyId)
+	if err != nil {
+		return 0, err
+	}
+
+	query := "INSERT INTO words (baby_id, word, number, learned_date) VALUES (?, ?, ?, ?)"
+	result, err := c.LogExec(query, babyId, word, maxWordNumber+1, learnedDate)
+	if err != nil {
+		return 0, err
+	}
+
+	createdId, _ := result.LastInsertId()
+	return createdId, nil
+}
+
 type BabyStruct struct {
 	Id           int64
 	Slug         string
@@ -71,18 +116,21 @@ type BabyStruct struct {
 	ClientInfoId sql.NullInt64 `db:"client_info_id"`
 }
 
-func (b *BabyStruct) ListWords() []string {
-	return []string{}
-}
-func (b *BabyStruct) WordInfo(word string) (*WordInfo, error) {
-	return nil, fmt.Errorf("TODO")
-}
-func (b *BabyStruct) AddWord(word string) (*WordInfo, error) {
-	return nil, fmt.Errorf("TODO")
+type ClientInfo struct {
+	Id        int64
+	UserAgent string
+	IpAddress string
+	CreatedAt string `db:"created_at"` // TODO custom type
 }
 
 type WordInfo struct {
-	// TODO
+	Id           int64
+	Baby_Id      int64
+	Word         string
+	Number       int64
+	Learned_Date string        // TODO type
+	CreatedAt    string        `db:"created_at"` // TODO custom type
+	ClientInfoId sql.NullInt64 `db:"client_info_id"`
 }
 
 // GenerateRandomString returns a securely generated random string suitable for

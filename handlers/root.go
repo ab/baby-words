@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -66,32 +67,21 @@ func (h *Handler) HandleCreateBaby(c *gin.Context) {
 func (h *Handler) HandleWordList(c *gin.Context) {
 	uid := c.Param("uid")
 
+	// TODO add option to helper to return HTML errors here
 	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
 		return
 	}
-	words := baby.ListWords()
+	words, err := h.db.ListWords(baby.Id)
+	if err != nil {
+		HandleErrorHTML(c, err)
+		return
+	}
+
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"baby":  baby,
 		"words": words,
 	})
-}
-
-// GET /words/:uid/check?word=foo
-func (h *Handler) HandleWordCheck(c *gin.Context) {
-	uid := c.Param("uid")
-	word := c.Query("word")
-
-	baby, err := h.helperGetBaby(c, uid)
-	if err != nil {
-		return
-	}
-	wordInfo, err := baby.WordInfo(word)
-	if err != nil {
-		HandleErrorJSON(c, err)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"TODO": "return word info", "wordInfo": wordInfo})
 }
 
 // POST /words/:uid/add payload: word=foo
@@ -99,17 +89,26 @@ func (h *Handler) HandleWordAdd(c *gin.Context) {
 	uid := c.Param("uid")
 	word := c.PostForm("word")
 
+	learnedDate, isSet := c.GetPostForm("learned_date")
+	if learnedDate == "" || !isSet {
+		learnedDate = UTCTodayString()
+	}
+
 	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
 		return
 	}
 
-	wordInfo, err := baby.AddWord(word)
+	wordId, err := h.db.AddWord(baby.Id, word, learnedDate)
 	if err != nil {
 		HandleErrorJSON(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "TODO": "return word info", "wordInfo": wordInfo})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true, "word": gin.H{
+			"id": wordId, "word": word,
+		},
+	})
 }
 
 func (h *Handler) helperGetBaby(c *gin.Context, slug string) (*db.BabyStruct, error) {
@@ -136,4 +135,8 @@ func HandleErrorHTML(c *gin.Context, err error) {
 		"error.tmpl",
 		gin.H{"error": true, "message": fmt.Sprintf("%v", err)},
 	)
+}
+
+func UTCTodayString() string {
+	return time.Now().Format("2006-01-02")
 }
