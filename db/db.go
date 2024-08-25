@@ -31,6 +31,8 @@ func (c *Connection) LogExec(query string, args ...any) (sql.Result, error) {
 }
 
 func (c *Connection) CreateBaby(name string, birth_date string) (*BabyStruct, error) {
+	// TODO add client_info row
+
 	// TODO convert birth date?
 	query := "INSERT INTO babies (slug, name, birth_date) VALUES (?, ?, ?)"
 	b := BabyStruct{
