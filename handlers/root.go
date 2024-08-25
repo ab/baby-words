@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -76,10 +77,10 @@ func (h *Handler) HandleWordList(c *gin.Context) {
 	})
 }
 
-// GET /words/:uid/check/:word
+// GET /words/:uid/check?word=foo
 func (h *Handler) HandleWordCheck(c *gin.Context) {
 	uid := c.Param("uid")
-	word := c.Param("word")
+	word := c.Query("word")
 
 	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
@@ -93,10 +94,10 @@ func (h *Handler) HandleWordCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"TODO": "return word info", "wordInfo": wordInfo})
 }
 
-// POST /words/:uid/add/:word
+// POST /words/:uid/add payload: word=foo
 func (h *Handler) HandleWordAdd(c *gin.Context) {
 	uid := c.Param("uid")
-	word := c.Param("word")
+	word := c.PostForm("word")
 
 	baby, err := h.helperGetBaby(c, uid)
 	if err != nil {
@@ -114,6 +115,7 @@ func (h *Handler) HandleWordAdd(c *gin.Context) {
 func (h *Handler) helperGetBaby(c *gin.Context, slug string) (*db.BabyStruct, error) {
 	baby, err := h.db.GetBaby(slug)
 	if err != nil {
+		log.Printf("Failed to find baby slug=%v: %v", slug, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "No such baby"})
 		return nil, fmt.Errorf("No such baby")
 	}

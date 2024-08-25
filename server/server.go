@@ -47,8 +47,8 @@ func InitRouter() *gin.Engine {
 	r.GET("/words/:uid/list", h.HandleWordList)
 
 	// word get / create
-	r.GET("/words/:uid/check/:word", h.HandleWordCheck)
-	r.POST("/words/:uid/add/:word", h.HandleWordAdd)
+	r.GET("/words/:uid/check", h.HandleWordCheck)
+	r.POST("/words/:uid/add", h.HandleWordAdd)
 
 	return r
 }

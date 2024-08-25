@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Baby Word Tracker | {{.baby.Name}}</title>
+  </head>
+  <body>
+    <h1>{{.baby.Name}}'s Baby Word Tracker</h1>
+
+    <h3>Add a word</h3>
+    <form action="./add" method="post">
+      <input type="text" name="word"/>
+      <input type="submit" value="Add"/>
+    </form>
+
+    <h3>Words {{.baby.Name}} knows:</h3>
+
+    {{ if .words }}
+      <ul>
+        {{ range $i, $word := .words }}
+          <li>{{ $word.Word }}</li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p>No words yet!</p>
+    {{ end }}
+  </body>
+</html>

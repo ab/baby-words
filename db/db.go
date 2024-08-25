@@ -62,11 +62,13 @@ func (c *Connection) GetBaby(slug string) (*BabyStruct, error) {
 }
 
 type BabyStruct struct {
-	Id        int64
-	Slug      string
-	Name      string
-	BirthDate string `db:"birth_date"` // TODO do custom type http://jmoiron.net/blog/built-in-interfaces
-	CreatedAt string `db:"created_at"` // // TODO custom type
+	Id           int64
+	Slug         string
+	Name         string
+	BirthDate    string `db:"birth_date"` // TODO do custom type http://jmoiron.net/blog/built-in-interfaces
+	CreatedAt    string `db:"created_at"` // // TODO custom type
+	Timezone     sql.NullString
+	ClientInfoId sql.NullInt64 `db:"client_info_id"`
 }
 
 func (b *BabyStruct) ListWords() []string {
