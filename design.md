@@ -25,6 +25,7 @@
 - name
 - birth_date
 - created_at
+- client_info_id
 
 
 **words**
@@ -35,4 +36,10 @@
 - number
 - learned_date
 - created_at
+- client_info_id
 
+
+**client_info**
+- id
+- user_agent
+- ip_address
