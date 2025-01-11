@@ -16,5 +16,7 @@ func main() {
 	r := server.InitRouter()
 	// Listen and serve on 0.0.0.0:8080
 	log.Printf("baby-words/gin listening on port %v\n", port)
-	r.Run(":" + port)
+	err := r.Run(":" + port)
+
+	log.Printf("(*gin.Engine).Run() returned %v", err)
 }
